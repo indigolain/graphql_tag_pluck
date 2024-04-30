@@ -16,10 +16,6 @@ module GraphqlTagPluck
       Parser::CurrentRuby.parse(file_string)
     end
 
-    def reload
-      load __FILE__
-    end
-
     def graphql_heredoc_identifiers
       %w{GRAPHQL GQL}
     end
