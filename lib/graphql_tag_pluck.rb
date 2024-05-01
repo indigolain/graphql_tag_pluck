@@ -2,7 +2,7 @@
 
 require_relative "graphql_tag_pluck/version"
 require_relative "graphql_tag_pluck/config"
-require_relative "graphql_tag_pluck/lib/railtie" if defined?(Rails)
+require_relative "graphql_tag_pluck/railtie" if defined?(Rails)
 require "parser/current"
 require "graphql"
 
@@ -27,7 +27,10 @@ module GraphqlTagPluck
       {}.tap do |hash|
         files.each do |file|
           node = create_node_from_file(file)
-          parse_node_recursively(node).flatten.compact.each do |graphql_doc_string|
+          parsed_node_array = parse_node_recursively(node)
+          next if parsed_node_array.nil?
+
+          parsed_node_array.flatten.compact.each do |graphql_doc_string|
             parsed_graphql_doc_string = GraphQL.parse(graphql_doc_string)
             parsed_graphql_doc_string.definitions.each do |definition|
               hash[definition.name] = { 

@@ -1,13 +1,13 @@
 require 'graphql_tag_pluck'
 require 'rails'
 
-module MyGem
+module GraphqlTagPluck
   class Railtie < Rails::Railtie
-    railtie_name :my_gem
+    railtie_name :graphql_tag_pluck
 
     rake_tasks do
       path = File.expand_path(__dir__)
-      Dir.glob("#{path}/tasks/**/*.rake").each { |f| load f }
+      Dir.glob("#{path}/tasks/**/*.rake").each { |f| puts f; load f }
     end
   end
 end

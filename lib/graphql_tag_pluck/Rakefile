@@ -1,4 +1,4 @@
-require './graphql_tag_pluck.rb'
+require 'graphql_tag_pluck'
 
 path = File.expand_path(__dir__)
 Dir.glob("#{path}/tasks/**/*.rake").each { |f| import f }
