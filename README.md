@@ -5,7 +5,7 @@ Install this gem and run the following rake task to get the exported json file c
 
 With a sample heredoc like:
 
-```
+```ruby
 SAMPLE_QUERY = <<-GRAPHQL
   query SampleQuery {
     hoge
