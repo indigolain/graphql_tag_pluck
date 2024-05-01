@@ -23,6 +23,7 @@ module GraphqlTagPluck
 
     def get_graphql_heredocs
       files = Dir.glob(GraphqlTagPluck.options[:file_glob_pattern])
+      unnamed_operation_count = 0
 
       {}.tap do |hash|
         files.each do |file|
@@ -33,7 +34,14 @@ module GraphqlTagPluck
           parsed_node_array.flatten.compact.each do |graphql_doc_string|
             parsed_graphql_doc_string = GraphQL.parse(graphql_doc_string)
             parsed_graphql_doc_string.definitions.each do |definition|
-              hash[definition.name] = { 
+              key = if definition.name.nil?
+                unnamed_operation_count += 1
+                "unnamed_operation_#{unnamed_operation_count}"
+              else
+                definition.name
+              end
+
+              hash[key] = { 
                 name: definition.name,
                 source: definition.to_query_string,
                 type: definition.instance_of?(GraphQL::Language::Nodes::FragmentDefinition) ? 'fragment' : definition.operation_type 
