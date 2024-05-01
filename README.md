@@ -3,9 +3,38 @@
 A gem for plucking GraphQL queries / mutations / fragments defined by heredocs inside files and exporting them to json file.
 Install this gem and run the following rake task to get the exported json file containing the list of GraphQL queries / mutations / fragments.
 
+With a sample heredoc like:
+
+```
+SAMPLE_QUERY = <<-GRAPHQL
+  query SampleQuery {
+    hoge
+    fuga {
+      piyo
+    }
+  }
+GRAPHQL
+```
+
+will output json file like: (following json content is formatted)
+
+```json
+{
+  "SampleQuery": {
+    "name": "SampleQuery",
+    "source": "query SampleQuery {\n  hoge\n  fuga {\n    piyo\n  }\n}",
+    "type": "query"
+  }
+}
+```
+
+by executing
+
 ```sh
 bundle exec rake graphql_tag_pluck:generate_graphql_operation_list
 ```
+
+## Configuration
 
 You can configure the following options by creating `.graphqltagpluckconfig.yaml` and specifying them inside.
 
