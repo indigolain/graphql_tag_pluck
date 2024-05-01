@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "parser", "~> 3.3"
   spec.add_dependency "graphql", "~> 2.3"
+  spec.add_dependency "yaml", "~> 0.1.0"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

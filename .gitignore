@@ -15,3 +15,4 @@ Gemfile.lock
 .DS_Store
 
 /__generated__/
+.graphqltagpluckconfig.yaml
