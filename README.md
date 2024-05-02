@@ -1,5 +1,7 @@
 # GraphqlTagPluck
 
+[![Gem Version](https://badge.fury.io/rb/graphql_tag_pluck.svg)](https://badge.fury.io/rb/graphql_tag_pluck)
+
 A gem for plucking GraphQL queries / mutations / fragments defined by heredocs inside `.rb` files and exporting them into a json file.
 
 Install this gem and run the following rake task to get the exported json file containing the list of GraphQL queries / mutations / fragments.
