@@ -1,4 +1,3 @@
-require 'graphql_tag_pluck'
 require 'rails'
 
 module GraphqlTagPluck

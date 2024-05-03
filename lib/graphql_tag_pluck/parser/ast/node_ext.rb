@@ -1,5 +1,3 @@
-require "parser/current"
-
 module GraphqlTagPluck
   module Parser
     module AST
