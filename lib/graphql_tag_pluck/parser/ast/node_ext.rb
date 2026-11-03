@@ -9,19 +9,6 @@ module GraphqlTagPluck
             type == :dstr && children.any? { |child| child.type != :str && !(child.type == :dstr && !child.interpolated?) }
           end
 
-          def parse_node_recursively
-            return nil unless respond_to?(:loc)
-            if is_graphql_heredoc_node?
-              return loc.heredoc_body.source unless interpolated?
-
-              warn "graphql_tag_pluck: skipping GraphQL heredoc with Ruby interpolation at #{loc.expression.source_buffer.name}:#{loc.line}"
-              return nil
-            end
-            if respond_to?(:children)
-              children.map {|child| child.respond_to?(:parse_node_recursively) ? child.parse_node_recursively : nil }
-            end
-          end
-
           def is_graphql_heredoc_node?
             loc.instance_of?(::Parser::Source::Map::Heredoc) &&
               GraphqlTagPluck.options[:graphql_heredoc_identifiers].include?(heredoc_identifier)
