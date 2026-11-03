@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'json'
 
 namespace :graphql_tag_pluck do
   task :generate_graphql_operation_list do

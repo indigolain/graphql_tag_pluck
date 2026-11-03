@@ -5,8 +5,6 @@ module GraphqlTagPluck
   class Error < StandardError; end
 
   class << self
-    using GraphqlTagPluck::Parser::AST::NodeExt
-
     attr_accessor :options
 
     def default_options
@@ -18,34 +16,47 @@ module GraphqlTagPluck
     end
 
     def get_graphql_heredocs
-      files = Dir.glob(GraphqlTagPluck.options[:file_glob_pattern])
-      unnamed_operation_count = 0
+      files = Dir.glob(GraphqlTagPluck.options[:file_glob_pattern]).sort
+      collector = HeredocCollector.new(GraphqlTagPluck.options[:graphql_heredoc_identifiers])
 
       {}.tap do |hash|
         files.each do |file|
           node = ::Parser::CurrentRuby.parse_file(file)
-          parsed_node_array = node&.parse_node_recursively
-          next if parsed_node_array.nil?
+          next if node.nil?
 
-          parsed_node_array.flatten.compact.each do |graphql_doc_string|
-            parsed_graphql_doc_string = GraphQL.parse(graphql_doc_string)
-            parsed_graphql_doc_string.definitions.each do |definition|
-              key = if definition.name.nil?
-                unnamed_operation_count += 1
-                "unnamed_operation_#{unnamed_operation_count}"
-              else
-                definition.name
+          path = relative_path(file)
+
+          collector.collect(node).each do |heredoc|
+            GraphQL.parse(heredoc.source).definitions.each do |definition|
+              line = heredoc.line + definition.line - 1
+              # Unnamed operations are keyed by their location so keys stay stable across runs.
+              key = definition.name || "#{path}:#{line}"
+
+              if (existing = hash[key])
+                raise Error, "Duplicate GraphQL definition name `#{key}`: " \
+                  "defined at #{existing[:file]}:#{existing[:line]} and #{path}:#{line}"
               end
 
-              hash[key] = { 
+              hash[key] = {
                 name: definition.name,
                 source: definition.to_query_string,
-                type: definition.instance_of?(GraphQL::Language::Nodes::FragmentDefinition) ? 'fragment' : definition.operation_type 
+                type: definition.instance_of?(GraphQL::Language::Nodes::FragmentDefinition) ? 'fragment' : definition.operation_type,
+                file: path,
+                line: line,
+                constant: heredoc.constant
               }
             end
           end
         end
       end
+    end
+
+    private
+
+    def relative_path(file)
+      absolute = File.expand_path(file)
+      prefix = "#{Dir.pwd}/"
+      absolute.start_with?(prefix) ? absolute.delete_prefix(prefix) : absolute
     end
   end
 

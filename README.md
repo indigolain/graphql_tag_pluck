@@ -32,10 +32,25 @@ will output json file like: (following json content is formatted)
   "SampleQuery": {
     "name": "SampleQuery",
     "source": "query SampleQuery {\n  hoge\n  fuga {\n    piyo\n  }\n}",
-    "type": "query"
+    "type": "query",
+    "file": "app/clients/sample_client.rb",
+    "line": 2,
+    "constant": "SAMPLE_QUERY"
   }
 }
 ```
+
+Each entry contains:
+
+- `name`: the operation / fragment name (`null` for unnamed operations)
+- `source`: the normalized GraphQL document of the definition
+- `type`: `query`, `mutation`, `subscription`, or `fragment`
+- `file`: the file the definition was found in, relative to the current directory
+- `line`: the line the definition starts on
+- `constant`: the fully qualified constant the heredoc is assigned to (e.g. `Clients::UserClient::USER_QUERY`), or `null` when the heredoc is not assigned to a constant
+
+Entries are keyed by definition name. Unnamed operations are keyed by their location (e.g. `"app/clients/sample_client.rb:2"`).
+Definitions sharing the same name raise `GraphqlTagPluck::Error`.
 
 by executing
 
