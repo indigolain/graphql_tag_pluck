@@ -5,8 +5,6 @@ module GraphqlTagPluck
   class Error < StandardError; end
 
   class << self
-    using GraphqlTagPluck::Parser::AST::NodeExt
-
     attr_accessor :options
 
     def default_options
@@ -18,9 +16,9 @@ module GraphqlTagPluck
     end
 
     def get_graphql_heredocs
-      files = Dir.glob(GraphqlTagPluck.options[:file_glob_pattern])
-      unnamed_operation_count = 0
-      origin_files = {}
+      # Sorted so the output, and which duplicate wins, does not depend on file system order.
+      files = Dir.glob(GraphqlTagPluck.options[:file_glob_pattern]).sort
+      collector = HeredocCollector.new
 
       {}.tap do |hash|
         files.each do |file|
@@ -30,39 +28,52 @@ module GraphqlTagPluck
             warn "graphql_tag_pluck: skipping #{file}, which could not be parsed as Ruby: #{e.message}"
             next
           end
-          parsed_node_array = node&.parse_node_recursively
-          next if parsed_node_array.nil?
+          next if node.nil?
 
-          parsed_node_array.flatten.compact.each do |graphql_doc_string|
-            parsed_graphql_doc_string = begin
-              GraphQL.parse(graphql_doc_string)
+          path = relative_path(file)
+
+          collector.collect(node).each do |heredoc|
+            document = begin
+              GraphQL.parse(heredoc.source)
             rescue GraphQL::ParseError => e
-              warn "graphql_tag_pluck: skipping invalid GraphQL heredoc in #{file}: #{e.message}"
+              warn "graphql_tag_pluck: skipping invalid GraphQL heredoc in #{path}:#{heredoc.line}: #{e.message}"
               next
             end
-            parsed_graphql_doc_string.definitions.each do |definition|
-              key = if definition.name.nil?
-                unnamed_operation_count += 1
-                "unnamed_operation_#{unnamed_operation_count}"
-              else
-                definition.name
-              end
 
+            document.definitions.each do |definition|
+              line = heredoc.line + definition.line - 1
+              # Unnamed operations are keyed by their location so keys stay stable across runs.
+              key = definition.name || "#{path}:#{line}"
               source = definition.to_query_string
-              if hash.key?(key) && hash[key][:source] != source
-                warn "graphql_tag_pluck: #{key} in #{file} overwrites a different definition with the same name in #{origin_files[key]}"
+
+              # Operation names must be unique, even for identical copies, so the
+              # generated list never silently depends on which definition wins.
+              if (existing = hash[key])
+                raise Error, "Duplicate GraphQL definition name `#{key}`: " \
+                  "defined at #{existing[:file]}:#{existing[:line]} and #{path}:#{line}"
               end
-              origin_files[key] = file
 
               hash[key] = {
                 name: definition.name,
                 source: source,
-                type: definition.instance_of?(GraphQL::Language::Nodes::FragmentDefinition) ? 'fragment' : definition.operation_type 
+                type: definition.instance_of?(GraphQL::Language::Nodes::FragmentDefinition) ? 'fragment' : definition.operation_type,
+                file: path,
+                line: line,
+                constant: heredoc.constant
               }
             end
           end
         end
       end
+    end
+
+    private
+
+    # Relative to the current directory when the file is inside it, absolute otherwise.
+    def relative_path(file)
+      absolute = File.realpath(file)
+      prefix = "#{File.realpath(Dir.pwd)}/"
+      absolute.start_with?(prefix) ? absolute.delete_prefix(prefix) : absolute
     end
   end
 

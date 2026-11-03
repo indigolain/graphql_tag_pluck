@@ -9,16 +9,24 @@ RSpec.describe GraphqlTagPluck, "duplicate operation names" do
     RUBY
   end
 
-  it "warns when a different definition reuses an operation name" do
+  it "raises when a different definition reuses an operation name, naming both locations" do
     expect do
-      pluck("a.rb" => query_file("query Dup { a }"), "b.rb" => query_file("query Dup { b }"))
-    end.to output(%r{Dup in .*\.rb overwrites a different definition with the same name in .*\.rb}).to_stderr
+      pluck_from_project_root("a.rb" => query_file("query Dup { a }"), "b.rb" => query_file("query Dup { b }"))
+    end.to raise_error(
+      GraphqlTagPluck::Error,
+      "Duplicate GraphQL definition name `Dup`: defined at a.rb:2 and b.rb:2"
+    )
   end
 
-  it "does not warn when the same definition appears twice" do
+  it "raises even when the same definition appears twice" do
     expect do
-      result = pluck("a.rb" => query_file("query Same { a }"), "b.rb" => query_file("query Same { a }"))
-      expect(result.keys).to eq(["Same"])
-    end.not_to output.to_stderr
+      pluck_from_project_root("a.rb" => query_file("query Same { a }"), "b.rb" => query_file("query Same { a }"))
+    end.to raise_error(GraphqlTagPluck::Error, /Duplicate GraphQL definition name `Same`/)
+  end
+
+  it "raises for duplicate fragment names too" do
+    expect do
+      pluck("a.rb" => query_file("fragment F on User { id }"), "b.rb" => query_file("fragment F on User { name }"))
+    end.to raise_error(GraphqlTagPluck::Error, /`F`/)
   end
 end
