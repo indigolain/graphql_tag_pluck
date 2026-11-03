@@ -75,18 +75,12 @@ $ bundle add graphql_tag_pluck
 
 ## Releasing
 
-Releases are published to RubyGems.org by the [Release workflow](.github/workflows/release.yml) when a `v*` tag is pushed.
+Releases are automated by the [Release workflow](.github/workflows/release.yml):
 
-1. Bump `GraphqlTagPluck::VERSION` in `lib/graphql_tag_pluck/version.rb` and merge it into `main`.
-2. Create a GitHub release for the matching tag:
+1. Bump `GraphqlTagPluck::VERSION` in `lib/graphql_tag_pluck/version.rb` in a pull request.
+2. Merge it into `main`.
 
-   ```sh
-   gh release create v$(ruby -r ./lib/graphql_tag_pluck/version -e 'print GraphqlTagPluck::VERSION') --target main --generate-notes
-   ```
-
-   (Pushing the tag yourself with `git tag vX.Y.Z && git push origin vX.Y.Z` works too.)
-
-The workflow checks that the tag matches `VERSION`, runs the specs, then builds and pushes the gem.
+The workflow then tags the merge commit as `vX.Y.Z`, runs the specs and publishes the gem to RubyGems.org. If publishing fails, re-run it from **Actions → Release → Run workflow**; the existing tag is reused.
 
 One-time setup: on RubyGems.org, open the gem's **Trusted publishers** settings and add a GitHub Actions publisher with repository `indigolain/graphql_tag_pluck`, workflow `release.yml`, and environment `rubygems.org`.
 
