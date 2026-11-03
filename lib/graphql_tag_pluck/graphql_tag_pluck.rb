@@ -24,7 +24,7 @@ module GraphqlTagPluck
       {}.tap do |hash|
         files.each do |file|
           node = begin
-            ::Parser::CurrentRuby.parse_file(file)
+            RubyParser.parse_file(file)
           rescue ::Parser::SyntaxError => e
             warn "graphql_tag_pluck: skipping #{file}, which could not be parsed as Ruby: #{e.message}"
             next
