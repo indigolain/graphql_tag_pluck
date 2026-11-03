@@ -20,6 +20,7 @@ module GraphqlTagPluck
     def get_graphql_heredocs
       files = Dir.glob(GraphqlTagPluck.options[:file_glob_pattern])
       unnamed_operation_count = 0
+      origin_files = {}
 
       {}.tap do |hash|
         files.each do |file|
@@ -37,9 +38,15 @@ module GraphqlTagPluck
                 definition.name
               end
 
-              hash[key] = { 
+              source = definition.to_query_string
+              if hash.key?(key) && hash[key][:source] != source
+                warn "graphql_tag_pluck: #{key} in #{file} overwrites a different definition with the same name in #{origin_files[key]}"
+              end
+              origin_files[key] = file
+
+              hash[key] = {
                 name: definition.name,
-                source: definition.to_query_string,
+                source: source,
                 type: definition.instance_of?(GraphQL::Language::Nodes::FragmentDefinition) ? 'fragment' : definition.operation_type 
               }
             end
