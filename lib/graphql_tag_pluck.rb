@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "parser/current"
+require_relative "graphql_tag_pluck/ruby_parser"
 require "graphql"
 require "yaml"
 
