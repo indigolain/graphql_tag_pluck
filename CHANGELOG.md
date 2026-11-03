@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-03
+
+### Added
+
+- Each exported entry now records where it was defined: `file` (relative to
+  the current directory, or absolute for files outside it), `line` (the line
+  the definition starts on, also correct for several definitions in one
+  heredoc), and `constant` (the fully qualified constant the heredoc is
+  assigned to, such as `Clients::UserClient::USER_QUERY`, or `null`).
+  ([#16](https://github.com/indigolain/graphql_tag_pluck/pull/16))
+
+### Changed
+
+- **Breaking:** unnamed operations are keyed by their location, such as
+  `"app/clients/user_client.rb:4"`, instead of `unnamed_operation_N`. The old
+  counter depended on the order files were read in.
+  ([#16](https://github.com/indigolain/graphql_tag_pluck/pull/16))
+- **Breaking:** any definition name that appears more than once, even with an
+  identical definition, now raises `GraphqlTagPluck::Error` naming both
+  locations, and no output file is written. 0.2.0 only warned and kept the
+  last definition.
+  ([#16](https://github.com/indigolain/graphql_tag_pluck/pull/16))
+- Files are processed in sorted order, so output no longer depends on file
+  system order. Warnings for invalid GraphQL now include the `path:line`.
+  ([#16](https://github.com/indigolain/graphql_tag_pluck/pull/16))
+
 ## [0.2.0] - 2026-11-03
 
 ### Changed
@@ -65,7 +91,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration through `.graphqltagpluckconfig.yaml`
   (`graphql_heredoc_identifiers`, `file_glob_pattern`, `output_path`).
 
-[Unreleased]: https://github.com/indigolain/graphql_tag_pluck/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/indigolain/graphql_tag_pluck/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/indigolain/graphql_tag_pluck/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/indigolain/graphql_tag_pluck/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/indigolain/graphql_tag_pluck/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/indigolain/graphql_tag_pluck/releases/tag/v0.1.0
