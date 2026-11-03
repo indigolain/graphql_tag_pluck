@@ -73,6 +73,23 @@ Install the gem and add to the application's Gemfile by executing:
 $ bundle add graphql_tag_pluck
 ```
 
+## Releasing
+
+Releases are published to RubyGems.org by the [Release workflow](.github/workflows/release.yml) when a `v*` tag is pushed.
+
+1. Bump `GraphqlTagPluck::VERSION` in `lib/graphql_tag_pluck/version.rb` and merge it into `main`.
+2. Create a GitHub release for the matching tag:
+
+   ```sh
+   gh release create v$(ruby -r ./lib/graphql_tag_pluck/version -e 'print GraphqlTagPluck::VERSION') --target main --generate-notes
+   ```
+
+   (Pushing the tag yourself with `git tag vX.Y.Z && git push origin vX.Y.Z` works too.)
+
+The workflow checks that the tag matches `VERSION`, runs the specs, then builds and pushes the gem.
+
+One-time setup: on RubyGems.org, open the gem's **Trusted publishers** settings and add a GitHub Actions publisher with repository `indigolain/graphql_tag_pluck`, workflow `release.yml`, and environment `rubygems.org`.
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

@@ -1,0 +1,39 @@
+name: Release
+
+# Publishes the gem to RubyGems.org when a version tag (e.g. v0.1.2) is pushed.
+# Uses RubyGems trusted publishing (OIDC), so no API key is stored in GitHub.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    if: github.repository == 'indigolain/graphql_tag_pluck'
+    runs-on: ubuntu-latest
+    environment:
+      name: rubygems.org
+      url: https://rubygems.org/gems/graphql_tag_pluck
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+    - name: Check tag matches gem version
+      run: |
+        version=$(ruby -r ./lib/graphql_tag_pluck/version -e 'print GraphqlTagPluck::VERSION')
+        if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+          echo "::error::Tag $GITHUB_REF_NAME does not match GraphqlTagPluck::VERSION ($version)"
+          exit 1
+        fi
+    - name: Run specs
+      run: bundle exec rake spec
+    - name: Publish to RubyGems.org
+      uses: rubygems/release-gem@v1
