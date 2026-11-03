@@ -43,6 +43,14 @@ by executing
 bundle exec rake graphql_tag_pluck:generate_graphql_operation_list
 ```
 
+### Loading the rake task
+
+In a Rails app the task is available automatically. In any other project, add this to your `Rakefile`:
+
+```ruby
+require "graphql_tag_pluck/rake_tasks"
+```
+
 ## Configuration
 
 You can configure the following options by creating `.graphqltagpluckconfig.yaml` and specifying them inside.
