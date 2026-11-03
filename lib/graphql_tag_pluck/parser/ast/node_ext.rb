@@ -13,7 +13,13 @@ module GraphqlTagPluck
 
           def is_graphql_heredoc_node?
             loc.instance_of?(::Parser::Source::Map::Heredoc) &&
-              GraphqlTagPluck.options[:graphql_heredoc_identifiers].any? {|identifier| loc.expression.source.include?(identifier) }
+              GraphqlTagPluck.options[:graphql_heredoc_identifiers].include?(heredoc_identifier)
+          end
+
+          # The terminator line holds the bare identifier, e.g. "GRAPHQL" for
+          # <<~GRAPHQL, <<-'GRAPHQL' and <<"GRAPHQL" alike.
+          def heredoc_identifier
+            loc.heredoc_end.source.strip
           end
         end
       end
