@@ -3,9 +3,20 @@ module GraphqlTagPluck
     module AST
       module NodeExt
         refine ::Parser::AST::Node do
+          # Multi-line heredocs parse as :dstr even without interpolation, so
+          # only parts other than plain strings (#{...}, #@ivar, ...) count.
+          def interpolated?
+            type == :dstr && children.any? { |child| child.type != :str && !(child.type == :dstr && !child.interpolated?) }
+          end
+
           def parse_node_recursively
             return nil unless respond_to?(:loc)
-            return loc.heredoc_body.source if is_graphql_heredoc_node?
+            if is_graphql_heredoc_node?
+              return loc.heredoc_body.source unless interpolated?
+
+              warn "graphql_tag_pluck: skipping GraphQL heredoc with Ruby interpolation at #{loc.expression.source_buffer.name}:#{loc.line}"
+              return nil
+            end
             if respond_to?(:children)
               children.map {|child| child.respond_to?(:parse_node_recursively) ? child.parse_node_recursively : nil }
             end
