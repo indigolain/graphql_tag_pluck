@@ -24,12 +24,22 @@ module GraphqlTagPluck
 
       {}.tap do |hash|
         files.each do |file|
-          node = ::Parser::CurrentRuby.parse_file(file)
+          node = begin
+            ::Parser::CurrentRuby.parse_file(file)
+          rescue ::Parser::SyntaxError => e
+            warn "graphql_tag_pluck: skipping #{file}, which could not be parsed as Ruby: #{e.message}"
+            next
+          end
           parsed_node_array = node&.parse_node_recursively
           next if parsed_node_array.nil?
 
           parsed_node_array.flatten.compact.each do |graphql_doc_string|
-            parsed_graphql_doc_string = GraphQL.parse(graphql_doc_string)
+            parsed_graphql_doc_string = begin
+              GraphQL.parse(graphql_doc_string)
+            rescue GraphQL::ParseError => e
+              warn "graphql_tag_pluck: skipping invalid GraphQL heredoc in #{file}: #{e.message}"
+              next
+            end
             parsed_graphql_doc_string.definitions.each do |definition|
               key = if definition.name.nil?
                 unnamed_operation_count += 1
