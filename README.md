@@ -77,7 +77,7 @@ $ bundle add graphql_tag_pluck
 
 Releases are automated by the [Release workflow](.github/workflows/release.yml):
 
-1. Bump `GraphqlTagPluck::VERSION` in `lib/graphql_tag_pluck/version.rb` in a pull request.
+1. Bump the version in the `VERSION` file at the repository root in a pull request.
 2. Merge it into `main`.
 
 The workflow then tags the merge commit as `vX.Y.Z`, runs the specs and publishes the gem to RubyGems.org. If publishing fails, re-run it from **Actions → Release → Run workflow**; the existing tag is reused.

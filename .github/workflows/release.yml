@@ -1,7 +1,7 @@
 name: Release
 
-# When a change to GraphqlTagPluck::VERSION lands on main, tag the commit as
-# vX.Y.Z and publish that version to RubyGems.org.
+# When a change to the VERSION file lands on main, tag the commit as vX.Y.Z
+# and publish that version to RubyGems.org.
 #
 # Tagging and publishing live in one workflow on purpose: tags pushed with
 # GITHUB_TOKEN do not trigger other workflows, and RubyGems trusted
@@ -14,7 +14,7 @@ on:
     branches:
       - main
     paths:
-      - lib/graphql_tag_pluck/version.rb
+      - VERSION
   workflow_dispatch:
 
 concurrency:
@@ -38,9 +38,9 @@ jobs:
     - name: Read gem version
       id: version
       run: |
-        version=$(sed -n 's/^ *VERSION = "\(.*\)"$/\1/p' lib/graphql_tag_pluck/version.rb)
-        if [ -z "$version" ]; then
-          echo "::error::Could not read VERSION from lib/graphql_tag_pluck/version.rb"
+        version=$(tr -d '[:space:]' < VERSION)
+        if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.]+)?$'; then
+          echo "::error::VERSION file does not contain a valid version: '$version'"
           exit 1
         fi
         echo "tag=v$version" >> "$GITHUB_OUTPUT"
