@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Gemfile and graphql_tag_pluck.gemspec dependencies.
+  - package-ecosystem: bundler
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      bundler:
+        patterns: ["*"]
+
+  # Actions used in .github/workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
